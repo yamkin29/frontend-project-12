@@ -1,18 +1,34 @@
 import { Formik } from 'formik'
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
+import { io } from 'socket.io-client'
 import avatar from './assets/avatar.jpg'
-import { fetchChatData } from './slices/chatSlice'
+import { addMessage, fetchChatData, setCurrentChannelId } from './slices/chatSlice'
 
 function ChatPage() {
   const dispatch = useDispatch()
-  const { channels, messages, status, error } = useSelector((state) => state.chat)
+  const {
+    channels,
+    messages,
+    currentChannelId,
+    status,
+    error,
+  } = useSelector((state) => state.chat)
   const token = localStorage.getItem('token')
+  const username = localStorage.getItem('username')
   const navigate = useNavigate()
+  const [messageBody, setMessageBody] = useState('')
+  const [sendStatus, setSendStatus] = useState('idle')
+  const [sendError, setSendError] = useState(null)
+  const messageInputRef = useRef(null)
+
+  const currentChannel = channels.find((channel) => channel.id === currentChannelId)
+  const channelMessages = messages.filter((message) => message.channelId === currentChannelId)
 
   const handleLogout = () => {
     localStorage.removeItem('token')
+    localStorage.removeItem('username')
     navigate('/login', { replace: true })
   }
 
@@ -21,6 +37,55 @@ function ChatPage() {
       dispatch(fetchChatData(token))
     }
   }, [dispatch, status, token])
+
+  useEffect(() => {
+    const socket = io()
+    socket.on('newMessage', (payload) => {
+      dispatch(addMessage(payload))
+    })
+
+    return () => {
+      socket.disconnect()
+    }
+  }, [dispatch])
+
+  useEffect(() => {
+    if (currentChannelId) {
+      messageInputRef.current?.focus()
+    }
+  }, [currentChannelId])
+
+  const handleSendMessage = async (event) => {
+    event.preventDefault()
+    const trimmed = messageBody.trim()
+    if (!trimmed || !currentChannelId || !token) {
+      return
+    }
+    setSendStatus('sending')
+    setSendError(null)
+    try {
+      const response = await fetch('/api/v1/messages', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          body: trimmed,
+          channelId: currentChannelId,
+          username,
+        }),
+      })
+      if (!response.ok) {
+        throw new Error('Failed to send message')
+      }
+      setMessageBody('')
+    } catch (e) {
+      setSendError('Не удалось отправить сообщение. Проверьте соединение.')
+    } finally {
+      setSendStatus('idle')
+    }
+  }
 
   return (
     <div className="h-100 bg-light">
@@ -58,13 +123,17 @@ function ChatPage() {
                   id="channels-box"
                   className="nav flex-column nav-pills nav-fill px-2 mb-3 overflow-auto h-100 d-block"
                 >
-                  {channels.map((channel, index) => {
-                    const buttonClass = index === 0
+                  {channels.map((channel) => {
+                    const buttonClass = channel.id === currentChannelId
                       ? 'w-100 rounded-0 text-start btn btn-secondary'
                       : 'w-100 rounded-0 text-start btn'
                     return (
                       <li className="nav-item w-100" key={channel.id}>
-                        <button type="button" className={buttonClass}>
+                        <button
+                          type="button"
+                          className={buttonClass}
+                          onClick={() => dispatch(setCurrentChannelId(channel.id))}
+                        >
                           <span className="me-1">#</span>
                           {channel.name}
                         </button>
@@ -76,13 +145,15 @@ function ChatPage() {
               <div className="col p-0 h-100">
                 <div className="d-flex flex-column h-100">
                   <div className="bg-light mb-4 p-3 shadow-sm small">
-                    <p className="m-0"><b># general</b></p>
-                    <span className="text-muted">{messages.length} сообщений</span>
+                    <p className="m-0">
+                      <b>#{currentChannel?.name ?? ''}</b>
+                    </p>
+                    <span className="text-muted">{channelMessages.length} сообщений</span>
                   </div>
                   <div id="messages-box" className="chat-messages overflow-auto px-5">
                     {status === 'loading' && <div>Loading...</div>}
                     {status === 'failed' && <div className="text-danger">{error}</div>}
-                    {status === 'succeeded' && messages.map((message) => (
+                    {status === 'succeeded' && channelMessages.map((message) => (
                       <div key={message.id} className="text-break mb-2">
                         <b>{message.username}</b>
                         {': '}
@@ -91,15 +162,23 @@ function ChatPage() {
                     ))}
                   </div>
                   <div className="mt-auto px-5 py-3">
-                    <form noValidate className="py-1 border rounded-2">
+                    {sendError && <div className="alert alert-danger mb-2">{sendError}</div>}
+                    <form noValidate className="py-1 border rounded-2" onSubmit={handleSendMessage}>
                       <div className="input-group has-validation">
                         <input
                           name="body"
                           aria-label="Новое сообщение"
                           placeholder="Введите сообщение..."
                           className="border-0 p-0 ps-2 form-control"
+                          value={messageBody}
+                          onChange={(event) => setMessageBody(event.target.value)}
+                          ref={messageInputRef}
                         />
-                        <button type="submit" disabled className="btn btn-group-vertical">
+                        <button
+                          type="submit"
+                          disabled={!messageBody.trim() || sendStatus === 'sending' || !currentChannelId}
+                          className="btn btn-group-vertical"
+                        >
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 16 16"
@@ -173,6 +252,9 @@ function LoginPage() {
                           const data = await response.json()
                           if (data?.token) {
                             localStorage.setItem('token', data.token)
+                            if (data.username) {
+                              localStorage.setItem('username', data.username)
+                            }
                             navigate('/', { replace: true })
                           }
                         } finally {

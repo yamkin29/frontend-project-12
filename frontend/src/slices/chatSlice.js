@@ -29,10 +29,18 @@ const chatSlice = createSlice({
   initialState: {
     channels: [],
     messages: [],
+    currentChannelId: null,
     status: 'idle',
     error: null,
   },
-  reducers: {},
+  reducers: {
+    setCurrentChannelId: (state, action) => {
+      state.currentChannelId = action.payload
+    },
+    addMessage: (state, action) => {
+      state.messages.push(action.payload)
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchChatData.pending, (state) => {
@@ -43,6 +51,10 @@ const chatSlice = createSlice({
         state.status = 'succeeded'
         state.channels = action.payload.channels
         state.messages = action.payload.messages
+        if (!state.currentChannelId && state.channels.length > 0) {
+          const general = state.channels.find((channel) => channel.name === 'general')
+          state.currentChannelId = general ? general.id : state.channels[0].id
+        }
       })
       .addCase(fetchChatData.rejected, (state, action) => {
         state.status = 'failed'
@@ -51,4 +63,5 @@ const chatSlice = createSlice({
   },
 })
 
+export const { addMessage, setCurrentChannelId } = chatSlice.actions
 export default chatSlice.reducer

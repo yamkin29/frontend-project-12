@@ -1,5 +1,6 @@
 import { Formik } from 'formik'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { io } from 'socket.io-client'
 import * as yup from 'yup'
@@ -24,6 +25,7 @@ function ChatPage() {
   } = useSelector((state) => state.chat)
   const token = localStorage.getItem('token')
   const username = localStorage.getItem('username')
+  const { t } = useTranslation()
   const [messageBody, setMessageBody] = useState('')
   const [sendStatus, setSendStatus] = useState('idle')
   const [sendError, setSendError] = useState(null)
@@ -123,7 +125,7 @@ function ChatPage() {
       }
       setMessageBody('')
     } catch (e) {
-      setSendError('Не удалось отправить сообщение. Проверьте соединение.')
+      setSendError(t('chat.sendError'))
     } finally {
       setSendStatus('idle')
     }
@@ -152,7 +154,7 @@ function ChatPage() {
       dispatch(removeChannel(removingChannelId))
       setRemovingChannelId(null)
     } catch (e) {
-      setRemoveError('Не удалось удалить канал')
+      setRemoveError(t('channels.removeError'))
     } finally {
       setRemoveStatus('idle')
     }
@@ -166,13 +168,13 @@ function ChatPage() {
   const channelNameSchemaBase = yup
     .string()
     .trim()
-    .min(3, 'От 3 до 20 символов')
-    .max(20, 'От 3 до 20 символов')
-    .required('Обязательное поле')
+    .min(3, t('validation.nameLength'))
+    .max(20, t('validation.nameLength'))
+    .required(t('validation.required'))
 
   const addChannelSchema = channelNameSchemaBase.test(
     'unique',
-    'Имя канала должно быть уникальным',
+    t('validation.uniqueChannel'),
     (value) => {
       if (!value) {
         return true
@@ -184,7 +186,7 @@ function ChatPage() {
 
   const getRenameSchema = (channelId) => channelNameSchemaBase.test(
     'unique-except-current',
-    'Имя канала должно быть уникальным',
+    t('validation.uniqueChannel'),
     (value) => {
       if (!value) {
         return true
@@ -209,7 +211,7 @@ function ChatPage() {
             <div className="row h-100 bg-white flex-md-row">
               <div className="col-4 col-md-2 border-end px-0 bg-light flex-column h-100 d-flex">
                 <div className="d-flex mt-1 justify-content-between mb-2 ps-4 pe-2 p-4">
-                  <b>Каналы</b>
+                  <b>{t('channels.title')}</b>
                   <button
                     type="button"
                     className="p-0 text-primary btn btn-group-vertical"
@@ -226,7 +228,7 @@ function ChatPage() {
                       <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2z" />
                       <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4" />
                     </svg>
-                    <span className="visually-hidden">+</span>
+                    <span className="visually-hidden">{t('channels.add')}</span>
                   </button>
                 </div>
                 <ul
@@ -260,7 +262,7 @@ function ChatPage() {
                               aria-expanded={openDropdownId === channel.id}
                               onClick={() => toggleDropdown(channel.id)}
                             >
-                              <span className="visually-hidden">Управление каналом</span>
+                              <span className="visually-hidden">{t('channels.manage')}</span>
                             </button>
                             <div
                               className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
@@ -278,7 +280,7 @@ function ChatPage() {
                                   setOpenDropdownId(null)
                                 }}
                               >
-                                Удалить
+                                {t('channels.remove')}
                               </a>
                               <a
                                 className="dropdown-item"
@@ -291,7 +293,7 @@ function ChatPage() {
                                   setRenamingChannelId(channel.id)
                                 }}
                               >
-                                Переименовать
+                                {t('channels.rename')}
                               </a>
                             </div>
                           </div>
@@ -317,10 +319,12 @@ function ChatPage() {
                     <p className="m-0 text-truncate">
                       <b>#{currentChannel?.name ?? ''}</b>
                     </p>
-                    <span className="text-muted">{channelMessages.length} сообщений</span>
+                    <span className="text-muted">
+                      {t('chat.messagesCount', { count: channelMessages.length })}
+                    </span>
                   </div>
                   <div id="messages-box" className="chat-messages overflow-auto px-5">
-                    {status === 'loading' && <div>Loading...</div>}
+                    {status === 'loading' && <div>{t('common.loading')}</div>}
                     {status === 'failed' && <div className="text-danger">{error}</div>}
                     {status === 'succeeded' && channelMessages.map((message) => (
                       <div key={message.id} className="text-break mb-2">
@@ -336,8 +340,8 @@ function ChatPage() {
                       <div className="input-group has-validation">
                         <input
                           name="body"
-                          aria-label="Новое сообщение"
-                          placeholder="Введите сообщение..."
+                          aria-label={t('chat.newMessage')}
+                          placeholder={t('chat.messagePlaceholder')}
                           className="border-0 p-0 ps-2 form-control"
                           value={messageBody}
                           onChange={(event) => setMessageBody(event.target.value)}
@@ -362,7 +366,7 @@ function ChatPage() {
                               d="M15 2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1zM0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2zm4.5 5.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5z"
                             />
                           </svg>
-                          <span className="visually-hidden">Отправить</span>
+                          <span className="visually-hidden">{t('channels.send')}</span>
                         </button>
                       </div>
                     </form>
@@ -392,7 +396,7 @@ function ChatPage() {
                           body: JSON.stringify({ name: values.name.trim() }),
                         })
                         if (!response.ok) {
-                          setStatus('Не удалось создать канал')
+                          setStatus(t('channels.addError'))
                           return
                         }
                         const data = await response.json()
@@ -416,7 +420,7 @@ function ChatPage() {
                     }) => (
                       <>
                         <div className="modal-header">
-                          <div className="modal-title h4">Добавить канал</div>
+                          <div className="modal-title h4">{t('channels.addTitle')}</div>
                           <button
                             type="button"
                             aria-label="Close"
@@ -436,7 +440,7 @@ function ChatPage() {
                                 onChange={handleChange}
                                 ref={channelInputRef}
                               />
-                              <label className="visually-hidden" htmlFor="name">Имя канала</label>
+                              <label className="visually-hidden" htmlFor="name">{t('channels.nameLabel')}</label>
                               {status && <div className="invalid-feedback d-block">{status}</div>}
                               {touched.name && errors.name && (
                                 <div className="invalid-feedback d-block">
@@ -450,10 +454,10 @@ function ChatPage() {
                                   onClick={() => setIsAddingChannel(false)}
                                   disabled={isSubmitting}
                                 >
-                                  Отменить
+                                  {t('channels.cancel')}
                                 </button>
                                 <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                  Отправить
+                                  {t('channels.submit')}
                                 </button>
                               </div>
                             </div>
@@ -474,7 +478,7 @@ function ChatPage() {
               <div className="modal-dialog modal-dialog-centered">
                 <div className="modal-content">
                   <div className="modal-header">
-                    <div className="modal-title h4">Удалить канал</div>
+                    <div className="modal-title h4">{t('channels.removeTitle')}</div>
                     <button
                       type="button"
                       aria-label="Close"
@@ -484,7 +488,7 @@ function ChatPage() {
                     />
                   </div>
                   <div className="modal-body">
-                    <p className="lead">Уверены?</p>
+                    <p className="lead">{t('channels.confirmRemove')}</p>
                     {removeError && <div className="alert alert-danger">{removeError}</div>}
                     <div className="d-flex justify-content-end">
                       <button
@@ -493,7 +497,7 @@ function ChatPage() {
                         onClick={closeRemoveModal}
                         disabled={removeStatus === 'removing'}
                       >
-                        Отменить
+                        {t('channels.cancel')}
                       </button>
                       <button
                         type="button"
@@ -502,7 +506,7 @@ function ChatPage() {
                         disabled={removeStatus === 'removing'}
                         ref={removeConfirmRef}
                       >
-                        Удалить
+                        {t('channels.remove')}
                       </button>
                     </div>
                   </div>
@@ -534,7 +538,7 @@ function ChatPage() {
                           body: JSON.stringify({ name: values.name.trim() }),
                         })
                         if (!response.ok) {
-                          setStatus('Не удалось переименовать канал')
+                          setStatus(t('channels.renameError'))
                           return
                         }
                         const data = await response.json()
@@ -556,7 +560,7 @@ function ChatPage() {
                     }) => (
                       <>
                         <div className="modal-header">
-                          <div className="modal-title h4">Переименовать канал</div>
+                          <div className="modal-title h4">{t('channels.renameTitle')}</div>
                           <button
                             type="button"
                             aria-label="Close"
@@ -576,7 +580,7 @@ function ChatPage() {
                                 onChange={handleChange}
                                 ref={renameInputRef}
                               />
-                              <label className="visually-hidden" htmlFor="name">Имя канала</label>
+                              <label className="visually-hidden" htmlFor="name">{t('channels.nameLabel')}</label>
                               {status && <div className="invalid-feedback d-block">{status}</div>}
                               {touched.name && errors.name && (
                                 <div className="invalid-feedback d-block">
@@ -590,10 +594,10 @@ function ChatPage() {
                                   onClick={closeRenameModal}
                                   disabled={isSubmitting}
                                 >
-                                  Отменить
+                                  {t('channels.cancel')}
                                 </button>
                                 <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
-                                  Отправить
+                                  {t('channels.submit')}
                                 </button>
                               </div>
                             </div>

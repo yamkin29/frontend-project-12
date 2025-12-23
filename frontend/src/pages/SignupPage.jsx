@@ -1,5 +1,6 @@
 import { Formik } from 'formik'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
 import avatar from '../assets/avatar_1.jpg'
@@ -9,6 +10,7 @@ function SignupPage() {
   const navigate = useNavigate()
   const token = localStorage.getItem('token')
   const signupInputRef = useRef(null)
+  const { t } = useTranslation()
 
   if (token) {
     return <Navigate to="/" replace />
@@ -22,17 +24,17 @@ function SignupPage() {
     username: yup
       .string()
       .trim()
-      .min(3, 'От 3 до 20 символов')
-      .max(20, 'От 3 до 20 символов')
-      .required('Обязательное поле'),
+      .min(3, t('validation.nameLength'))
+      .max(20, t('validation.nameLength'))
+      .required(t('validation.required')),
     password: yup
       .string()
-      .min(6, 'Не менее 6 символов')
-      .required('Обязательное поле'),
+      .min(6, t('validation.passwordLength'))
+      .required(t('validation.required')),
     confirmPassword: yup
       .string()
-      .oneOf([yup.ref('password')], 'Пароли должны совпадать')
-      .required('Обязательное поле'),
+      .oneOf([yup.ref('password')], t('validation.passwordMatch'))
+      .required(t('validation.required')),
   })
 
   return (
@@ -46,7 +48,7 @@ function SignupPage() {
                 <div className="card shadow-sm">
                   <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
                     <div>
-                      <img src={avatar} className="rounded-circle" alt="Регистрация" />
+                      <img src={avatar} className="rounded-circle" alt={t('auth.signupTitle')} />
                     </div>
                     <Formik
                       initialValues={{ username: '', password: '', confirmPassword: '' }}
@@ -65,11 +67,11 @@ function SignupPage() {
                             }),
                           })
                           if (response.status === 409) {
-                            setStatus('Такой пользователь уже существует')
+                            setStatus(t('auth.signupConflict'))
                             return
                           }
                           if (!response.ok) {
-                            setStatus('Не удалось зарегистрироваться')
+                            setStatus(t('auth.signupError'))
                             return
                           }
                           const data = await response.json()
@@ -95,21 +97,21 @@ function SignupPage() {
                         values,
                       }) => (
                         <form className="w-50" onSubmit={handleSubmit}>
-                          <h1 className="text-center mb-4">Регистрация</h1>
+                          <h1 className="text-center mb-4">{t('auth.signupTitle')}</h1>
                           {status && <div className="alert alert-danger">{status}</div>}
                           <div className="form-floating mb-3 position-relative">
                             <input
                               name="username"
                               autoComplete="username"
                               required
-                              placeholder="От 3 до 20 символов"
+                              placeholder={t('auth.usernamePlaceholder')}
                               id="username"
                               className={`form-control ${touched.username && errors.username ? 'is-invalid' : ''}`}
                               onChange={handleChange}
                               value={values.username}
                               ref={signupInputRef}
                             />
-                            <label className="form-label" htmlFor="username">Имя пользователя</label>
+                            <label className="form-label" htmlFor="username">{t('auth.username')}</label>
                             {touched.username && errors.username && (
                               <div className="invalid-tooltip">{errors.username}</div>
                             )}
@@ -119,7 +121,7 @@ function SignupPage() {
                               name="password"
                               autoComplete="new-password"
                               required
-                              placeholder="Не менее 6 символов"
+                              placeholder={t('auth.passwordPlaceholder')}
                               type="password"
                               id="password"
                               aria-describedby="passwordHelpBlock"
@@ -127,7 +129,7 @@ function SignupPage() {
                               onChange={handleChange}
                               value={values.password}
                             />
-                            <label className="form-label" htmlFor="password">Пароль</label>
+                            <label className="form-label" htmlFor="password">{t('auth.password')}</label>
                             {touched.password && errors.password && (
                               <div className="invalid-tooltip">{errors.password}</div>
                             )}
@@ -137,14 +139,14 @@ function SignupPage() {
                               name="confirmPassword"
                               autoComplete="new-password"
                               required
-                              placeholder="Пароли должны совпадать"
+                              placeholder={t('auth.confirmPasswordPlaceholder')}
                               type="password"
                               id="confirmPassword"
                               className={`form-control ${touched.confirmPassword && errors.confirmPassword ? 'is-invalid' : ''}`}
                               onChange={handleChange}
                               value={values.confirmPassword}
                             />
-                            <label className="form-label" htmlFor="confirmPassword">Подтвердите пароль</label>
+                            <label className="form-label" htmlFor="confirmPassword">{t('auth.confirmPassword')}</label>
                             {touched.confirmPassword && errors.confirmPassword && (
                               <div className="invalid-tooltip">{errors.confirmPassword}</div>
                             )}
@@ -154,7 +156,7 @@ function SignupPage() {
                             className="w-100 btn btn-outline-primary"
                             disabled={isSubmitting}
                           >
-                            Зарегистрироваться
+                            {t('auth.signupButton')}
                           </button>
                         </form>
                       )}

@@ -1,5 +1,5 @@
 import { Formik } from 'formik'
-import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import avatar from './assets/avatar.jpg'
 
 function ChatPage() {
@@ -12,6 +12,13 @@ function ChatPage() {
 }
 
 function LoginPage() {
+  const navigate = useNavigate()
+  const token = localStorage.getItem('token')
+
+  if (token) {
+    return <Navigate to="/" replace />
+  }
+
   return (
     <div className="h-100 bg-light">
       <div className="h-100" id="chat">
@@ -29,10 +36,36 @@ function LoginPage() {
                     <div className="col-12 col-md-6 d-flex align-items-center justify-content-center">
                       <img src={avatar} className="rounded-circle" alt="Войти" />
                     </div>
-                    <Formik initialValues={{ username: '', password: '' }} onSubmit={() => {}}>
-                      {({ handleChange, handleSubmit, values }) => (
+                    <Formik
+                      initialValues={{ username: '', password: '' }}
+                      onSubmit={async (values, { setSubmitting, setStatus }) => {
+                        setStatus(null)
+                        try {
+                          const response = await fetch('/api/v1/login', {
+                            method: 'POST',
+                            headers: {
+                              'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(values),
+                          })
+                          if (!response.ok) {
+                            setStatus('Неверные имя пользователя или пароль')
+                            return
+                          }
+                          const data = await response.json()
+                          if (data?.token) {
+                            localStorage.setItem('token', data.token)
+                            navigate('/', { replace: true })
+                          }
+                        } finally {
+                          setSubmitting(false)
+                        }
+                      }}
+                    >
+                      {({ handleChange, handleSubmit, isSubmitting, status, values }) => (
                         <form className="col-12 col-md-6 mt-3 mt-md-0" onSubmit={handleSubmit}>
                           <h1 className="text-center mb-4">Войти</h1>
+                          {status && <div className="alert alert-danger">{status}</div>}
                           <div className="form-floating mb-3">
                             <input
                               name="username"
@@ -60,7 +93,11 @@ function LoginPage() {
                             />
                             <label className="form-label" htmlFor="password">Пароль</label>
                           </div>
-                          <button type="submit" className="w-100 mb-3 btn btn-outline-primary">
+                          <button
+                            type="submit"
+                            className="w-100 mb-3 btn btn-outline-primary"
+                            disabled={isSubmitting}
+                          >
                             Войти
                           </button>
                         </form>
@@ -93,12 +130,19 @@ function NotFoundPage() {
   )
 }
 
+function ProtectedChatRoute() {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    return <Navigate to="/login" replace />
+  }
+  return <ChatPage />
+}
+
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="/chat" element={<ChatPage />} />
+        <Route path="/" element={<ProtectedChatRoute />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

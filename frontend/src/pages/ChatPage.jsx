@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { io } from 'socket.io-client'
 import { toast } from 'react-toastify'
+import leoProfanity from 'leo-profanity'
 import * as yup from 'yup'
 import { ToastContainer } from 'react-toastify'
 import Header from '../components/Header'
@@ -109,7 +110,7 @@ function ChatPage() {
 
   const handleSendMessage = async (event) => {
     event.preventDefault()
-    const trimmed = messageBody.trim()
+    const trimmed = leoProfanity.clean(messageBody.trim())
     if (!trimmed || !currentChannelId || !token) {
       return
     }
@@ -404,7 +405,7 @@ function ChatPage() {
                             Authorization: `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
-                          body: JSON.stringify({ name: values.name.trim() }),
+                          body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
                         })
                         if (!response.ok) {
                           setStatus(t('channels.addError'))
@@ -548,7 +549,7 @@ function ChatPage() {
                             Authorization: `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
-                          body: JSON.stringify({ name: values.name.trim() }),
+                          body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
                         })
                         if (!response.ok) {
                           setStatus(t('channels.renameError'))

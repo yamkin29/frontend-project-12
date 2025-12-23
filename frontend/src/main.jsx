@@ -8,6 +8,9 @@ import './index.css'
 import App from './App.jsx'
 import store from './store'
 import './i18n'
+import leoProfanity from 'leo-profanity'
+
+leoProfanity.loadDictionary('ru')
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

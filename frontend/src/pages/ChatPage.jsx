@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { io } from 'socket.io-client'
+import { toast } from 'react-toastify'
 import * as yup from 'yup'
+import { ToastContainer } from 'react-toastify'
 import Header from '../components/Header'
 import {
   addChannel,
@@ -42,6 +44,12 @@ function ChatPage() {
 
   const currentChannel = channels.find((channel) => channel.id === currentChannelId)
   const channelMessages = messages.filter((message) => message.channelId === currentChannelId)
+
+  useEffect(() => {
+    if (status === 'failed') {
+      toast.error(t('chat.loadError'))
+    }
+  }, [status, t])
 
   useEffect(() => {
     if (token && status === 'idle') {
@@ -126,6 +134,7 @@ function ChatPage() {
       setMessageBody('')
     } catch (e) {
       setSendError(t('chat.sendError'))
+      toast.error(t('chat.sendError'))
     } finally {
       setSendStatus('idle')
     }
@@ -152,9 +161,11 @@ function ChatPage() {
         throw new Error('Failed to remove channel')
       }
       dispatch(removeChannel(removingChannelId))
+      toast.success(t('channels.removeSuccess'))
       setRemovingChannelId(null)
     } catch (e) {
       setRemoveError(t('channels.removeError'))
+      toast.error(t('channels.removeError'))
     } finally {
       setRemoveStatus('idle')
     }
@@ -397,11 +408,13 @@ function ChatPage() {
                         })
                         if (!response.ok) {
                           setStatus(t('channels.addError'))
+                          toast.error(t('channels.addError'))
                           return
                         }
                         const data = await response.json()
                         dispatch(addChannel(data))
                         dispatch(setCurrentChannelId(data.id))
+                        toast.success(t('channels.addSuccess'))
                         resetForm()
                         setIsAddingChannel(false)
                       } finally {
@@ -500,12 +513,12 @@ function ChatPage() {
                         {t('channels.cancel')}
                       </button>
                       <button
-                        type="button"
-                        className="btn btn-danger"
-                        onClick={handleRemoveChannel}
-                        disabled={removeStatus === 'removing'}
-                        ref={removeConfirmRef}
-                      >
+                      type="button"
+                      className="btn btn-danger"
+                      onClick={handleRemoveChannel}
+                      disabled={removeStatus === 'removing'}
+                      ref={removeConfirmRef}
+                    >
                         {t('channels.remove')}
                       </button>
                     </div>
@@ -539,10 +552,12 @@ function ChatPage() {
                         })
                         if (!response.ok) {
                           setStatus(t('channels.renameError'))
+                          toast.error(t('channels.renameError'))
                           return
                         }
                         const data = await response.json()
                         dispatch(renameChannel(data))
+                        toast.success(t('channels.renameSuccess'))
                         closeRenameModal()
                       } finally {
                         setSubmitting(false)
@@ -612,7 +627,7 @@ function ChatPage() {
             <div className="modal-backdrop fade show" />
           </>
         )}
-        <div className="Toastify" />
+        <ToastContainer />
       </div>
     </div>
   )

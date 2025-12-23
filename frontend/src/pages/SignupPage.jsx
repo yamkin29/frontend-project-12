@@ -167,7 +167,6 @@ function SignupPage() {
             </div>
           </div>
         </div>
-        <div className="Toastify" />
       </div>
     </div>
   )

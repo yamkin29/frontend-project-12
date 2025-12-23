@@ -41,12 +41,16 @@ const resources = {
         renameError: 'Не удалось переименовать канал',
         removeError: 'Не удалось удалить канал',
         nameLabel: 'Имя канала',
+        addSuccess: 'Канал создан',
+        renameSuccess: 'Канал переименован',
+        removeSuccess: 'Канал удалён',
       },
       chat: {
         messagesCount: '{{count}} сообщений',
         newMessage: 'Новое сообщение',
         messagePlaceholder: 'Введите сообщение...',
         sendError: 'Не удалось отправить сообщение. Проверьте соединение.',
+        loadError: 'Не удалось загрузить данные чата',
       },
       common: {
         loading: 'Loading...',

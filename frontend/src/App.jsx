@@ -3,8 +3,16 @@ import { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import { io } from 'socket.io-client'
+import * as yup from 'yup'
 import avatar from './assets/avatar.jpg'
-import { addMessage, fetchChatData, setCurrentChannelId } from './slices/chatSlice'
+import {
+  addChannel,
+  addMessage,
+  fetchChatData,
+  renameChannel,
+  removeChannel,
+  setCurrentChannelId,
+} from './slices/chatSlice'
 
 function ChatPage() {
   const dispatch = useDispatch()
@@ -22,6 +30,15 @@ function ChatPage() {
   const [sendStatus, setSendStatus] = useState('idle')
   const [sendError, setSendError] = useState(null)
   const messageInputRef = useRef(null)
+  const [isAddingChannel, setIsAddingChannel] = useState(false)
+  const channelInputRef = useRef(null)
+  const [removingChannelId, setRemovingChannelId] = useState(null)
+  const [removeStatus, setRemoveStatus] = useState('idle')
+  const [removeError, setRemoveError] = useState(null)
+  const [openDropdownId, setOpenDropdownId] = useState(null)
+  const [renamingChannelId, setRenamingChannelId] = useState(null)
+  const renameInputRef = useRef(null)
+  const removeConfirmRef = useRef(null)
 
   const currentChannel = channels.find((channel) => channel.id === currentChannelId)
   const channelMessages = messages.filter((message) => message.channelId === currentChannelId)
@@ -43,6 +60,15 @@ function ChatPage() {
     socket.on('newMessage', (payload) => {
       dispatch(addMessage(payload))
     })
+    socket.on('newChannel', (payload) => {
+      dispatch(addChannel(payload))
+    })
+    socket.on('removeChannel', (payload) => {
+      dispatch(removeChannel(payload.id))
+    })
+    socket.on('renameChannel', (payload) => {
+      dispatch(renameChannel(payload))
+    })
 
     return () => {
       socket.disconnect()
@@ -54,6 +80,30 @@ function ChatPage() {
       messageInputRef.current?.focus()
     }
   }, [currentChannelId])
+
+  useEffect(() => {
+    if (sendStatus === 'idle' && currentChannelId) {
+      messageInputRef.current?.focus()
+    }
+  }, [currentChannelId, sendStatus])
+
+  useEffect(() => {
+    if (isAddingChannel) {
+      channelInputRef.current?.focus()
+    }
+  }, [isAddingChannel])
+
+  useEffect(() => {
+    if (renamingChannelId) {
+      renameInputRef.current?.focus()
+    }
+  }, [renamingChannelId])
+
+  useEffect(() => {
+    if (removingChannelId) {
+      removeConfirmRef.current?.focus()
+    }
+  }, [removingChannelId])
 
   const handleSendMessage = async (event) => {
     event.preventDefault()
@@ -87,6 +137,84 @@ function ChatPage() {
     }
   }
 
+  const toggleDropdown = (channelId) => {
+    setOpenDropdownId((current) => (current === channelId ? null : channelId))
+  }
+
+  const handleRemoveChannel = async () => {
+    if (!removingChannelId || !token) {
+      return
+    }
+    setRemoveStatus('removing')
+    setRemoveError(null)
+    try {
+      const response = await fetch(`/api/v1/channels/${removingChannelId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to remove channel')
+      }
+      dispatch(removeChannel(removingChannelId))
+      setRemovingChannelId(null)
+    } catch (e) {
+      setRemoveError('Не удалось удалить канал')
+    } finally {
+      setRemoveStatus('idle')
+    }
+  }
+
+  const closeRemoveModal = () => {
+    setRemovingChannelId(null)
+    setRemoveError(null)
+  }
+
+  const channelNameSchemaBase = yup
+    .string()
+    .trim()
+    .min(3, 'От 3 до 20 символов')
+    .max(20, 'От 3 до 20 символов')
+    .required('Обязательное поле')
+
+  const addChannelSchema = channelNameSchemaBase.test(
+    'unique',
+    'Имя канала должно быть уникальным',
+    (value) => {
+      if (!value) {
+        return true
+      }
+      const normalized = value.trim().toLowerCase()
+      return !channels.some((channel) => channel.name.toLowerCase() === normalized)
+    },
+  )
+    .test('unique', 'Имя канала должно быть уникальным', (value) => {
+      if (!value) {
+        return true
+      }
+      const normalized = value.trim().toLowerCase()
+      return !channels.some((channel) => channel.name.toLowerCase() === normalized)
+    })
+
+  const getRenameSchema = (channelId) => channelNameSchemaBase.test(
+    'unique-except-current',
+    'Имя канала должно быть уникальным',
+    (value) => {
+      if (!value) {
+        return true
+      }
+      const normalized = value.trim().toLowerCase()
+      return !channels.some((channel) => (
+        channel.id !== channelId && channel.name.toLowerCase() === normalized
+      ))
+    },
+  )
+
+  const closeRenameModal = () => {
+    setRenamingChannelId(null)
+  }
+
   return (
     <div className="h-100 bg-light">
       <div className="h-100" id="chat">
@@ -104,7 +232,11 @@ function ChatPage() {
               <div className="col-4 col-md-2 border-end px-0 bg-light flex-column h-100 d-flex">
                 <div className="d-flex mt-1 justify-content-between mb-2 ps-4 pe-2 p-4">
                   <b>Каналы</b>
-                  <button type="button" className="p-0 text-primary btn btn-group-vertical">
+                  <button
+                    type="button"
+                    className="p-0 text-primary btn btn-group-vertical"
+                    onClick={() => setIsAddingChannel(true)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 16 16"
@@ -129,14 +261,71 @@ function ChatPage() {
                       : 'w-100 rounded-0 text-start btn'
                     return (
                       <li className="nav-item w-100" key={channel.id}>
-                        <button
-                          type="button"
-                          className={buttonClass}
-                          onClick={() => dispatch(setCurrentChannelId(channel.id))}
-                        >
-                          <span className="me-1">#</span>
-                          {channel.name}
-                        </button>
+                        {channel.removable ? (
+                          <div role="group" className="d-flex dropdown btn-group position-relative">
+                            <button
+                              type="button"
+                              className={`${buttonClass} flex-grow-1 text-truncate`}
+                              onClick={() => {
+                                dispatch(setCurrentChannelId(channel.id))
+                                setOpenDropdownId(null)
+                              }}
+                            >
+                              <span className="me-1">#</span>                            
+                              {channel.name}
+                            </button>
+                            <button
+                              type="button"
+                              id={`channel-controls-${channel.id}`}
+                              className={`flex-grow-0 dropdown-toggle dropdown-toggle-split btn ${channel.id === currentChannelId ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                              aria-expanded={openDropdownId === channel.id}
+                              onClick={() => toggleDropdown(channel.id)}
+                            >
+                              <span className="visually-hidden">Управление каналом</span>
+                            </button>
+                            <div
+                              className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
+                              aria-labelledby={`channel-controls-${channel.id}`}
+                            >
+                              <a
+                                className="dropdown-item"
+                                role="button"
+                                tabIndex={0}
+                                href="#"
+                                onClick={(event) => {
+                                  event.preventDefault()
+                                  setRemoveError(null)
+                                  setRemovingChannelId(channel.id)
+                                  setOpenDropdownId(null)
+                                }}
+                              >
+                                Удалить
+                              </a>
+                              <a
+                                className="dropdown-item"
+                                role="button"
+                                tabIndex={0}
+                                href="#"
+                                onClick={(event) => {
+                                  event.preventDefault()
+                                  setOpenDropdownId(null)
+                                  setRenamingChannelId(channel.id)
+                                }}
+                              >
+                                Переименовать
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className={`${buttonClass} text-truncate`}
+                            onClick={() => dispatch(setCurrentChannelId(channel.id))}
+                          >
+                            <span className="me-1">#</span>                            
+                            {channel.name}
+                          </button>
+                        )}
                       </li>
                     )
                   })}
@@ -145,7 +334,7 @@ function ChatPage() {
               <div className="col p-0 h-100">
                 <div className="d-flex flex-column h-100">
                   <div className="bg-light mb-4 p-3 shadow-sm small">
-                    <p className="m-0">
+                    <p className="m-0 text-truncate">
                       <b>#{currentChannel?.name ?? ''}</b>
                     </p>
                     <span className="text-muted">{channelMessages.length} сообщений</span>
@@ -173,6 +362,7 @@ function ChatPage() {
                           value={messageBody}
                           onChange={(event) => setMessageBody(event.target.value)}
                           ref={messageInputRef}
+                          disabled={sendStatus === 'sending' || !currentChannelId}
                         />
                         <button
                           type="submit"
@@ -202,6 +392,242 @@ function ChatPage() {
             </div>
           </div>
         </div>
+        {isAddingChannel && (
+          <>
+            <div className="modal fade show d-block" role="dialog" aria-modal="true">
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <Formik
+                    initialValues={{ name: '' }}
+                    validationSchema={yup.object({ name: addChannelSchema })}
+                    onSubmit={async (values, { resetForm, setSubmitting, setStatus }) => {
+                      setStatus(null)
+                      try {
+                        const response = await fetch('/api/v1/channels', {
+                          method: 'POST',
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ name: values.name.trim() }),
+                        })
+                        if (!response.ok) {
+                          setStatus('Не удалось создать канал')
+                          return
+                        }
+                        const data = await response.json()
+                        dispatch(addChannel(data))
+                        dispatch(setCurrentChannelId(data.id))
+                        resetForm()
+                        setIsAddingChannel(false)
+                      } finally {
+                        setSubmitting(false)
+                      }
+                    }}
+                  >
+                    {({
+                      errors,
+                      handleChange,
+                      handleSubmit,
+                      isSubmitting,
+                      status,
+                      touched,
+                      values,
+                    }) => (
+                      <>
+                        <div className="modal-header">
+                          <div className="modal-title h4">Добавить канал</div>
+                          <button
+                            type="button"
+                            aria-label="Close"
+                            className="btn btn-close"
+                            onClick={() => setIsAddingChannel(false)}
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <div className="modal-body">
+                        <form onSubmit={handleSubmit}>
+                          <div>
+                            <input
+                              name="name"
+                              id="name"
+                              className={`mb-2 form-control ${touched.name && errors.name ? 'is-invalid' : ''}`}
+                              value={values.name}
+                              onChange={handleChange}
+                              ref={channelInputRef}
+                            />
+                            <label className="visually-hidden" htmlFor="name">Имя канала</label>
+                            {status && <div className="invalid-feedback d-block">{status}</div>}
+                            {touched.name && errors.name && (
+                              <div className="invalid-feedback d-block">
+                                {errors.name}
+                              </div>
+                            )}
+                            <div className="d-flex justify-content-end">
+                              <button
+                                type="button"
+                                className="me-2 btn btn-secondary"
+                                onClick={() => setIsAddingChannel(false)}
+                                disabled={isSubmitting}
+                              >
+                                Отменить
+                              </button>
+                              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                                Отправить
+                              </button>
+                            </div>
+                          </div>
+                        </form>
+                        </div>
+                      </>
+                    )}
+                  </Formik>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show" />
+          </>
+        )}
+        {removingChannelId && (
+          <>
+            <div className="modal fade show d-block" role="dialog" aria-modal="true">
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <div className="modal-title h4">Удалить канал</div>
+                    <button
+                      type="button"
+                      aria-label="Close"
+                      className="btn btn-close"
+                      onClick={closeRemoveModal}
+                      disabled={removeStatus === 'removing'}
+                    />
+                  </div>
+                  <div className="modal-body">
+                    <p class="lead">Уверены?</p>
+                    {removeError && <div className="alert alert-danger">{removeError}</div>}
+                    <div className="d-flex justify-content-end">
+                      <button
+                        type="button"
+                        className="me-2 btn btn-secondary"
+                        onClick={closeRemoveModal}
+                        disabled={removeStatus === 'removing'}
+                      >
+                        Отменить
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={handleRemoveChannel}
+                        disabled={removeStatus === 'removing'}
+                        ref={removeConfirmRef}
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show" />
+          </>
+        )}
+        {renamingChannelId && (
+          <>
+            <div className="modal fade show d-block" role="dialog" aria-modal="true">
+              <div className="modal-dialog modal-dialog-centered">
+                <div className="modal-content">
+                  <Formik
+                    initialValues={{
+                      name: channels.find((channel) => channel.id === renamingChannelId)?.name ?? '',
+                    }}
+                    validationSchema={yup.object({ name: getRenameSchema(renamingChannelId) })}
+                    onSubmit={async (values, { setSubmitting, setStatus }) => {
+                      setStatus(null)
+                      try {
+                        const response = await fetch(`/api/v1/channels/${renamingChannelId}`, {
+                          method: 'PATCH',
+                          headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({ name: values.name.trim() }),
+                        })
+                        if (!response.ok) {
+                          setStatus('Не удалось переименовать канал')
+                          return
+                        }
+                        const data = await response.json()
+                        dispatch(renameChannel(data))
+                        closeRenameModal()
+                      } finally {
+                        setSubmitting(false)
+                      }
+                    }}
+                  >
+                    {({
+                      errors,
+                      handleChange,
+                      handleSubmit,
+                      isSubmitting,
+                      status,
+                      touched,
+                      values,
+                    }) => (
+                      <>
+                        <div className="modal-header">
+                          <div className="modal-title h4">Переименовать канал</div>
+                          <button
+                            type="button"
+                            aria-label="Close"
+                            className="btn btn-close"
+                            onClick={closeRenameModal}
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <div className="modal-body">
+                          <form onSubmit={handleSubmit}>
+                            <div>
+                              <input
+                                name="name"
+                                id="name"
+                                className={`mb-2 form-control ${touched.name && errors.name ? 'is-invalid' : ''}`}
+                                value={values.name}
+                                onChange={handleChange}
+                                ref={renameInputRef}
+                              />
+                              <label className="visually-hidden" htmlFor="name">Имя канала</label>
+                              {status && <div className="invalid-feedback d-block">{status}</div>}
+                              {touched.name && errors.name && (
+                                <div className="invalid-feedback d-block">
+                                  {errors.name}
+                                </div>
+                              )}
+                              <div className="d-flex justify-content-end">
+                                <button
+                                  type="button"
+                                  className="me-2 btn btn-secondary"
+                                  onClick={closeRenameModal}
+                                  disabled={isSubmitting}
+                                >
+                                  Отменить
+                                </button>
+                                <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                                  Отправить
+                                </button>
+                              </div>
+                            </div>
+                          </form>
+                        </div>
+                      </>
+                    )}
+                  </Formik>
+                </div>
+              </div>
+            </div>
+            <div className="modal-backdrop fade show" />
+          </>
+        )}
         <div className="Toastify" />
       </div>
     </div>

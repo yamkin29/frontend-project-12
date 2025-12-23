@@ -44,8 +44,8 @@ function SignupPage() {
             <div className="row justify-content-center align-content-center h-100">
               <div className="col-12 col-md-8 col-xxl-6">
                 <div className="card shadow-sm">
-                  <div className="card-body row p-5">
-                    <div className="col-12 col-md-6 d-flex align-items-center justify-content-center">
+                  <div className="card-body d-flex flex-column flex-md-row justify-content-around align-items-center p-5">
+                    <div>
                       <img src={avatar} className="rounded-circle" alt="Регистрация" />
                     </div>
                     <Formik
@@ -94,63 +94,64 @@ function SignupPage() {
                         touched,
                         values,
                       }) => (
-                        <form className="col-12 col-md-6 mt-3 mt-md-0" onSubmit={handleSubmit}>
+                        <form className="w-50" onSubmit={handleSubmit}>
                           <h1 className="text-center mb-4">Регистрация</h1>
                           {status && <div className="alert alert-danger">{status}</div>}
-                          <div className="form-floating mb-3">
+                          <div className="form-floating mb-3 position-relative">
                             <input
                               name="username"
                               autoComplete="username"
                               required
-                              placeholder="Ваш ник"
-                              id="signup-username"
+                              placeholder="От 3 до 20 символов"
+                              id="username"
                               className={`form-control ${touched.username && errors.username ? 'is-invalid' : ''}`}
                               onChange={handleChange}
                               value={values.username}
                               ref={signupInputRef}
                             />
-                            <label htmlFor="signup-username">Ваш ник</label>
+                            <label className="form-label" htmlFor="username">Имя пользователя</label>
                             {touched.username && errors.username && (
-                              <div className="invalid-feedback">{errors.username}</div>
+                              <div className="invalid-tooltip">{errors.username}</div>
                             )}
                           </div>
-                          <div className="form-floating mb-3">
+                          <div className="form-floating mb-3 position-relative">
                             <input
                               name="password"
                               autoComplete="new-password"
                               required
-                              placeholder="Пароль"
+                              placeholder="Не менее 6 символов"
                               type="password"
-                              id="signup-password"
+                              id="password"
+                              aria-describedby="passwordHelpBlock"
                               className={`form-control ${touched.password && errors.password ? 'is-invalid' : ''}`}
                               onChange={handleChange}
                               value={values.password}
                             />
-                            <label htmlFor="signup-password">Пароль</label>
+                            <label className="form-label" htmlFor="password">Пароль</label>
                             {touched.password && errors.password && (
-                              <div className="invalid-feedback">{errors.password}</div>
+                              <div className="invalid-tooltip">{errors.password}</div>
                             )}
                           </div>
-                          <div className="form-floating mb-4">
+                          <div className="form-floating mb-4 position-relative">
                             <input
                               name="confirmPassword"
                               autoComplete="new-password"
                               required
-                              placeholder="Подтвердите пароль"
+                              placeholder="Пароли должны совпадать"
                               type="password"
-                              id="signup-confirm"
+                              id="confirmPassword"
                               className={`form-control ${touched.confirmPassword && errors.confirmPassword ? 'is-invalid' : ''}`}
                               onChange={handleChange}
                               value={values.confirmPassword}
                             />
-                            <label htmlFor="signup-confirm">Подтвердите пароль</label>
+                            <label className="form-label" htmlFor="confirmPassword">Подтвердите пароль</label>
                             {touched.confirmPassword && errors.confirmPassword && (
-                              <div className="invalid-feedback">{errors.confirmPassword}</div>
+                              <div className="invalid-tooltip">{errors.confirmPassword}</div>
                             )}
                           </div>
                           <button
                             type="submit"
-                            className="w-100 mb-3 btn btn-outline-primary"
+                            className="w-100 btn btn-outline-primary"
                             disabled={isSubmitting}
                           >
                             Зарегистрироваться
@@ -164,6 +165,7 @@ function SignupPage() {
             </div>
           </div>
         </div>
+        <div className="Toastify" />
       </div>
     </div>
   )

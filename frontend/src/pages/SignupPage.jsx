@@ -97,8 +97,12 @@ function SignupPage() {
                         values,
                       }) => (
                         <form className="w-50" onSubmit={handleSubmit}>
-                          <h1 className="text-center mb-4">{t('auth.signupTitle')}</h1>
-                          {status && <div className="alert alert-danger">{status}</div>}
+                          <h1 className="text-center mb-4">
+                            {t('auth.signupTitle')}
+                          </h1>
+                          {status && <div className="alert alert-danger">
+                            {status}
+                          </div>}
                           <div className="form-floating mb-3 position-relative">
                             <input
                               name="username"
@@ -111,9 +115,13 @@ function SignupPage() {
                               value={values.username}
                               ref={signupInputRef}
                             />
-                            <label className="form-label" htmlFor="username">{t('auth.username')}</label>
+                            <label className="form-label" htmlFor="username">
+                              {t('auth.username')}
+                            </label>
                             {touched.username && errors.username && (
-                              <div className="invalid-tooltip">{errors.username}</div>
+                              <div className="invalid-tooltip">
+                                {errors.username}
+                              </div>
                             )}
                           </div>
                           <div className="form-floating mb-3 position-relative">
@@ -129,9 +137,13 @@ function SignupPage() {
                               onChange={handleChange}
                               value={values.password}
                             />
-                            <label className="form-label" htmlFor="password">{t('auth.password')}</label>
+                            <label className="form-label" htmlFor="password">
+                              {t('auth.password')}
+                            </label>
                             {touched.password && errors.password && (
-                              <div className="invalid-tooltip">{errors.password}</div>
+                              <div className="invalid-tooltip">
+                                {errors.password}
+                              </div>
                             )}
                           </div>
                           <div className="form-floating mb-4 position-relative">
@@ -146,9 +158,13 @@ function SignupPage() {
                               onChange={handleChange}
                               value={values.confirmPassword}
                             />
-                            <label className="form-label" htmlFor="confirmPassword">{t('auth.confirmPassword')}</label>
+                            <label className="form-label" htmlFor="confirmPassword">
+                              {t('auth.confirmPassword')}
+                            </label>
                             {touched.confirmPassword && errors.confirmPassword && (
-                              <div className="invalid-tooltip">{errors.confirmPassword}</div>
+                              <div className="invalid-tooltip">
+                                {errors.confirmPassword}
+                              </div>
                             )}
                           </div>
                           <button
@@ -161,7 +177,7 @@ function SignupPage() {
                         </form>
                       )}
                     </Formik>
-                  </div>                
+                  </div>
                 </div>
               </div>
             </div>

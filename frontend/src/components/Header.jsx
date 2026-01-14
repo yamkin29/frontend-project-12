@@ -15,7 +15,9 @@ function Header() {
   return (
     <nav className="shadow-sm navbar navbar-expand-lg navbar-light bg-white">
       <div className="container">
-        <Link className="navbar-brand" to="/">{t('appName')}</Link>
+        <Link className="navbar-brand" to="/">
+          {t('appName')}
+        </Link>
         {token && (
           <button type="button" className="btn btn-primary" onClick={handleLogout}>
             {t('auth.logout')}

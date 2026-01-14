@@ -63,8 +63,12 @@ function LoginPage() {
                     >
                       {({ handleChange, handleSubmit, isSubmitting, status, values }) => (
                         <form className="col-12 col-md-6 mt-3 mt-md-0" onSubmit={handleSubmit}>
-                          <h1 className="text-center mb-4">{t('auth.login')}</h1>
-                          {status && <div className="alert alert-danger">{status}</div>}
+                          <h1 className="text-center mb-4">
+                            {t('auth.login')}
+                          </h1>
+                          {status && <div className="alert alert-danger">
+                            {status}
+                          </div>}
                           <div className="form-floating mb-3">
                             <input
                               name="username"
@@ -77,7 +81,9 @@ function LoginPage() {
                               value={values.username}
                               ref={loginInputRef}
                             />
-                            <label htmlFor="username">{t('auth.nicknamePlaceholder')}</label>
+                            <label htmlFor="username">
+                              {t('auth.nicknamePlaceholder')}
+                            </label>
                           </div>
                           <div className="form-floating mb-4">
                             <input
@@ -91,7 +97,9 @@ function LoginPage() {
                               onChange={handleChange}
                               value={values.password}
                             />
-                            <label className="form-label" htmlFor="password">{t('auth.password')}</label>
+                            <label className="form-label" htmlFor="password">
+                              {t('auth.password')}
+                            </label>
                           </div>
                           <button
                             type="submit"
@@ -106,8 +114,13 @@ function LoginPage() {
                   </div>
                   <div className="card-footer p-4">
                     <div className="text-center">
-                      <span>{t('auth.noAccount')}</span>{' '}
-                      <Link to="/signup">{t('auth.signup')}</Link>
+                      <span>
+                        {t('auth.noAccount')}
+                      </span>
+                      {' '}
+                      <Link to="/signup">
+                        {t('auth.signup')}
+                      </Link>
                     </div>
                   </div>
                 </div>

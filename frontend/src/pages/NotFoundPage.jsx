@@ -11,9 +11,15 @@ function NotFoundPage() {
         <div className="d-flex flex-column h-100">
           <Header />
           <main className="container py-4">
-            <h1>{t('notFound.title')}</h1>
-            <p>{t('notFound.text')}</p>
-            <Link to="/login">{t('notFound.toLogin')}</Link>
+            <h1>
+              {t('notFound.title')}
+            </h1>
+            <p>
+              {t('notFound.text')}
+            </p>
+            <Link to="/login">
+              {t('notFound.toLogin')}
+            </Link>
           </main>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useDispatch, useSelector } from 'react-redux'
 import { io } from 'socket.io-client'
 import { toast } from 'react-toastify'
-import leoProfanity from 'leo-profanity'
+import leoProfanity from '../profanity'
 import * as yup from 'yup'
 import { ToastContainer } from 'react-toastify'
 import Header from '../components/Header'
@@ -16,8 +16,6 @@ import {
   removeChannel,
   setCurrentChannelId,
 } from '../slices/chatSlice'
-
-leoProfanity.add(leoProfanity.getDictionary('ru'))
 
 function ChatPage() {
   const dispatch = useDispatch()
@@ -545,14 +543,14 @@ function ChatPage() {
                     onSubmit={async (values, { setSubmitting, setStatus }) => {
                       setStatus(null)
                       try {
-                        const response = await fetch(`/api/v1/channels/${renamingChannelId}`, {
-                          method: 'PATCH',
-                          headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
-                        })
+                      const response = await fetch(`/api/v1/channels/${renamingChannelId}`, {
+                        method: 'PATCH',
+                        headers: {
+                          Authorization: `Bearer ${token}`,
+                          'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
+                      })
                         if (!response.ok) {
                           setStatus(t('channels.renameError'))
                           toast.error(t('channels.renameError'))

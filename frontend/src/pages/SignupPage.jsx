@@ -12,13 +12,13 @@ function SignupPage() {
   const signupInputRef = useRef(null)
   const { t } = useTranslation()
 
-  if (token) {
-    return <Navigate to="/" replace />
-  }
-
   useEffect(() => {
     signupInputRef.current?.focus()
   }, [])
+
+  if (token) {
+    return <Navigate to="/" replace />
+  }
 
   const signupSchema = yup.object({
     username: yup

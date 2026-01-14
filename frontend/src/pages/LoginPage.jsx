@@ -11,13 +11,13 @@ function LoginPage() {
   const loginInputRef = useRef(null)
   const { t } = useTranslation()
 
-  if (token) {
-    return <Navigate to="/" replace />
-  }
-
   useEffect(() => {
     loginInputRef.current?.focus()
   }, [])
+
+  if (token) {
+    return <Navigate to="/" replace />
+  }
 
   return (
     <div className="h-100 bg-light">

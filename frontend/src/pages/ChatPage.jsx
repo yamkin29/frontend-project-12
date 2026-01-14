@@ -133,7 +133,7 @@ function ChatPage() {
         throw new Error('Failed to send message')
       }
       setMessageBody('')
-    } catch (e) {
+    } catch {
       setSendError(t('chat.sendError'))
       toast.error(t('chat.sendError'))
     } finally {
@@ -164,7 +164,7 @@ function ChatPage() {
       dispatch(removeChannel(removingChannelId))
       toast.success(t('channels.removeSuccess'))
       setRemovingChannelId(null)
-    } catch (e) {
+    } catch {
       setRemoveError(t('channels.removeError'))
       toast.error(t('channels.removeError'))
     } finally {

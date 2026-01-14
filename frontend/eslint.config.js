@@ -40,7 +40,7 @@ export default [
       'react-refresh': reactRefresh,
     },
     rules: {
-      '@stylistic/arrow-parens': ['error', 'always'],
+      '@stylistic/arrow-parens': ['error', 'as-needed'],
       '@stylistic/brace-style': ['error', 'stroustrup', { allowSingleLine: false }],
       '@stylistic/indent': ['error', 2],
       '@stylistic/jsx-closing-bracket-location': ['error', 'line-aligned'],
@@ -59,7 +59,7 @@ export default [
           prop: 'parens-new-line',
         },
       ],
-      '@stylistic/multiline-ternary': ['error', 'always-multiline'],
+      '@stylistic/multiline-ternary': 'off',
       '@stylistic/no-trailing-spaces': 'error',
       '@stylistic/quote-props': ['error', 'consistent'],
       'react/jsx-uses-vars': 'error',

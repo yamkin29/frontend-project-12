@@ -25,7 +25,7 @@ function ChatPage() {
     currentChannelId,
     status,
     error,
-  } = useSelector((state) => state.chat)
+  } = useSelector(state => state.chat)
   const token = localStorage.getItem('token')
   const username = localStorage.getItem('username')
   const { t } = useTranslation()
@@ -43,8 +43,8 @@ function ChatPage() {
   const renameInputRef = useRef(null)
   const removeConfirmRef = useRef(null)
 
-  const currentChannel = channels.find((channel) => channel.id === currentChannelId)
-  const channelMessages = messages.filter((message) => message.channelId === currentChannelId)
+  const currentChannel = channels.find(channel => channel.id === currentChannelId)
+  const channelMessages = messages.filter(message => message.channelId === currentChannelId)
 
   useEffect(() => {
     if (status === 'failed') {
@@ -60,16 +60,16 @@ function ChatPage() {
 
   useEffect(() => {
     const socket = io()
-    socket.on('newMessage', (payload) => {
+    socket.on('newMessage', payload => {
       dispatch(addMessage(payload))
     })
-    socket.on('newChannel', (payload) => {
+    socket.on('newChannel', payload => {
       dispatch(addChannel(payload))
     })
-    socket.on('removeChannel', (payload) => {
+    socket.on('removeChannel', payload => {
       dispatch(removeChannel(payload.id))
     })
-    socket.on('renameChannel', (payload) => {
+    socket.on('renameChannel', payload => {
       dispatch(renameChannel(payload))
     })
 
@@ -108,7 +108,7 @@ function ChatPage() {
     }
   }, [removingChannelId])
 
-  const handleSendMessage = async (event) => {
+  const handleSendMessage = async event => {
     event.preventDefault()
     const trimmed = leoProfanity.clean(messageBody.trim())
     if (!trimmed || !currentChannelId || !token) {
@@ -120,7 +120,7 @@ function ChatPage() {
       const response = await fetch('/api/v1/messages', {
         method: 'POST',
         headers: {
-          "Authorization": `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -143,8 +143,8 @@ function ChatPage() {
     }
   }
 
-  const toggleDropdown = (channelId) => {
-    setOpenDropdownId((current) => (current === channelId ? null : channelId))
+  const toggleDropdown = channelId => {
+    setOpenDropdownId(current => (current === channelId ? null : channelId))
   }
 
   const handleRemoveChannel = async () => {
@@ -191,24 +191,24 @@ function ChatPage() {
   const addChannelSchema = channelNameSchemaBase.test(
     'unique',
     t('validation.uniqueChannel'),
-    (value) => {
+    value => {
       if (!value) {
         return true
       }
       const normalized = value.trim().toLowerCase()
-      return !channels.some((channel) => channel.name.toLowerCase() === normalized)
+      return !channels.some(channel => channel.name.toLowerCase() === normalized)
     },
   )
 
-  const getRenameSchema = (channelId) => channelNameSchemaBase.test(
+  const getRenameSchema = channelId => channelNameSchemaBase.test(
     'unique-except-current',
     t('validation.uniqueChannel'),
-    (value) => {
+    value => {
       if (!value) {
         return true
       }
       const normalized = value.trim().toLowerCase()
-      return !channels.some((channel) => (
+      return !channels.some(channel => (
         channel.id !== channelId && channel.name.toLowerCase() === normalized
       ))
     },
@@ -255,79 +255,21 @@ function ChatPage() {
                   id="channels-box"
                   className="nav flex-column nav-pills nav-fill px-2 mb-3 overflow-auto h-100 d-block"
                 >
-                  {channels.map((channel) => {
+                  {channels.map(channel => {
                     const buttonClass = channel.id === currentChannelId
                       ? 'w-100 rounded-0 text-start btn btn-secondary'
                       : 'w-100 rounded-0 text-start btn'
                     return (
                       <li className="nav-item w-100" key={channel.id}>
-                        {channel.removable
-                          ? (
-                            <div role="group" className="d-flex dropdown btn-group position-relative">
-                              <button
-                                type="button"
-                                className={`${buttonClass} flex-grow-1 text-truncate`}
-                                onClick={() => {
-                                  dispatch(setCurrentChannelId(channel.id))
-                                  setOpenDropdownId(null)
-                                }}
-                              >
-                                <span className="me-1">
-                                  #
-                                </span>
-                                {' '}
-                                {channel.name}
-                              </button>
-                              <button
-                                type="button"
-                                id={`channel-controls-${channel.id}`}
-                                className={`flex-grow-0 dropdown-toggle dropdown-toggle-split btn ${channel.id === currentChannelId ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                                aria-expanded={openDropdownId === channel.id}
-                                onClick={() => toggleDropdown(channel.id)}
-                              >
-                                <span className="visually-hidden">
-                                  {t('channels.manage')}
-                                </span>
-                              </button>
-                              <div
-                                className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
-                                aria-labelledby={`channel-controls-${channel.id}`}
-                              >
-                                <a
-                                  className="dropdown-item"
-                                  role="button"
-                                  tabIndex={0}
-                                  href="#"
-                                  onClick={(event) => {
-                                    event.preventDefault()
-                                    setRemoveError(null)
-                                    setRemovingChannelId(channel.id)
-                                    setOpenDropdownId(null)
-                                  }}
-                                >
-                                  {t('channels.remove')}
-                                </a>
-                                <a
-                                  className="dropdown-item"
-                                  role="button"
-                                  tabIndex={0}
-                                  href="#"
-                                  onClick={(event) => {
-                                    event.preventDefault()
-                                    setOpenDropdownId(null)
-                                    setRenamingChannelId(channel.id)
-                                  }}
-                                >
-                                  {t('channels.rename')}
-                                </a>
-                              </div>
-                            </div>
-                          )
-                          : (
+                        {channel.removable ? (
+                          <div role="group" className="d-flex dropdown btn-group position-relative">
                             <button
                               type="button"
-                              className={`${buttonClass} text-truncate`}
-                              onClick={() => dispatch(setCurrentChannelId(channel.id))}
+                              className={`${buttonClass} flex-grow-1 text-truncate`}
+                              onClick={() => {
+                                dispatch(setCurrentChannelId(channel.id))
+                                setOpenDropdownId(null)
+                              }}
                             >
                               <span className="me-1">
                                 #
@@ -335,7 +277,63 @@ function ChatPage() {
                               {' '}
                               {channel.name}
                             </button>
-                          )}
+                            <button
+                              type="button"
+                              id={`channel-controls-${channel.id}`}
+                              className={`flex-grow-0 dropdown-toggle dropdown-toggle-split btn ${channel.id === currentChannelId ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                              aria-expanded={openDropdownId === channel.id}
+                              onClick={() => toggleDropdown(channel.id)}
+                            >
+                              <span className="visually-hidden">
+                                {t('channels.manage')}
+                              </span>
+                            </button>
+                            <div
+                              className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
+                              aria-labelledby={`channel-controls-${channel.id}`}
+                            >
+                              <a
+                                className="dropdown-item"
+                                role="button"
+                                tabIndex={0}
+                                href="#"
+                                onClick={event => {
+                                  event.preventDefault()
+                                  setRemoveError(null)
+                                  setRemovingChannelId(channel.id)
+                                  setOpenDropdownId(null)
+                                }}
+                              >
+                                {t('channels.remove')}
+                              </a>
+                              <a
+                                className="dropdown-item"
+                                role="button"
+                                tabIndex={0}
+                                href="#"
+                                onClick={event => {
+                                  event.preventDefault()
+                                  setOpenDropdownId(null)
+                                  setRenamingChannelId(channel.id)
+                                }}
+                              >
+                                {t('channels.rename')}
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className={`${buttonClass} text-truncate`}
+                            onClick={() => dispatch(setCurrentChannelId(channel.id))}
+                          >
+                            <span className="me-1">
+                              #
+                            </span>
+                            {' '}
+                            {channel.name}
+                          </button>
+                        )}
                       </li>
                     )
                   })}
@@ -365,7 +363,7 @@ function ChatPage() {
                         {error}
                       </div>
                     )}
-                    {status === 'succeeded' && channelMessages.map((message) => (
+                    {status === 'succeeded' && channelMessages.map(message => (
                       <div key={message.id} className="text-break mb-2">
                         <b>
                           {message.username}
@@ -389,7 +387,7 @@ function ChatPage() {
                           placeholder={t('chat.messagePlaceholder')}
                           className="border-0 p-0 ps-2 form-control"
                           value={messageBody}
-                          onChange={(event) => setMessageBody(event.target.value)}
+                          onChange={event => setMessageBody(event.target.value)}
                           ref={messageInputRef}
                           disabled={sendStatus === 'sending' || !currentChannelId}
                         />
@@ -437,7 +435,7 @@ function ChatPage() {
                         const response = await fetch('/api/v1/channels', {
                           method: 'POST',
                           headers: {
-                            "Authorization": `Bearer ${token}`,
+                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
                           body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
@@ -589,7 +587,7 @@ function ChatPage() {
                 <div className="modal-content">
                   <Formik
                     initialValues={{
-                      name: channels.find((channel) => channel.id === renamingChannelId)?.name ?? '',
+                      name: channels.find(channel => channel.id === renamingChannelId)?.name ?? '',
                     }}
                     validationSchema={yup.object({ name: getRenameSchema(renamingChannelId) })}
                     onSubmit={async (values, { setSubmitting, setStatus }) => {
@@ -598,7 +596,7 @@ function ChatPage() {
                         const response = await fetch(`/api/v1/channels/${renamingChannelId}`, {
                           method: 'PATCH',
                           headers: {
-                            "Authorization": `Bearer ${token}`,
+                            'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
                           body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),

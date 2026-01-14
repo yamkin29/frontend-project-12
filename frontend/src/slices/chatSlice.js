@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 export const fetchChatData = createAsyncThunk(
   'chat/fetchChatData',
-  async token => {
+  async (token) => {
     const headers = {
       Authorization: `Bearer ${token}`,
     }
@@ -63,9 +63,9 @@ const chatSlice = createSlice({
       state.messages.push(action.payload)
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(fetchChatData.pending, state => {
+      .addCase(fetchChatData.pending, (state) => {
         state.status = 'loading'
         state.error = null
       })

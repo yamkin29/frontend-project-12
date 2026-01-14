@@ -82,7 +82,8 @@ function SignupPage() {
                             }
                             navigate('/', { replace: true })
                           }
-                        } finally {
+                        }
+                        finally {
                           setSubmitting(false)
                         }
                       }}
@@ -100,9 +101,11 @@ function SignupPage() {
                           <h1 className="text-center mb-4">
                             {t('auth.signupTitle')}
                           </h1>
-                          {status && <div className="alert alert-danger">
-                            {status}
-                          </div>}
+                          {status && (
+                            <div className="alert alert-danger">
+                              {status}
+                            </div>
+                          )}
                           <div className="form-floating mb-3 position-relative">
                             <input
                               name="username"

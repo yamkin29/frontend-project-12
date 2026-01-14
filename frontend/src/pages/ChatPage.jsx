@@ -25,7 +25,7 @@ function ChatPage() {
     currentChannelId,
     status,
     error,
-  } = useSelector(state => state.chat)
+  } = useSelector((state) => state.chat)
   const token = localStorage.getItem('token')
   const username = localStorage.getItem('username')
   const { t } = useTranslation()
@@ -43,8 +43,8 @@ function ChatPage() {
   const renameInputRef = useRef(null)
   const removeConfirmRef = useRef(null)
 
-  const currentChannel = channels.find(channel => channel.id === currentChannelId)
-  const channelMessages = messages.filter(message => message.channelId === currentChannelId)
+  const currentChannel = channels.find((channel) => channel.id === currentChannelId)
+  const channelMessages = messages.filter((message) => message.channelId === currentChannelId)
 
   useEffect(() => {
     if (status === 'failed') {
@@ -60,16 +60,16 @@ function ChatPage() {
 
   useEffect(() => {
     const socket = io()
-    socket.on('newMessage', payload => {
+    socket.on('newMessage', (payload) => {
       dispatch(addMessage(payload))
     })
-    socket.on('newChannel', payload => {
+    socket.on('newChannel', (payload) => {
       dispatch(addChannel(payload))
     })
-    socket.on('removeChannel', payload => {
+    socket.on('removeChannel', (payload) => {
       dispatch(removeChannel(payload.id))
     })
-    socket.on('renameChannel', payload => {
+    socket.on('renameChannel', (payload) => {
       dispatch(renameChannel(payload))
     })
 
@@ -108,7 +108,7 @@ function ChatPage() {
     }
   }, [removingChannelId])
 
-  const handleSendMessage = async event => {
+  const handleSendMessage = async (event) => {
     event.preventDefault()
     const trimmed = leoProfanity.clean(messageBody.trim())
     if (!trimmed || !currentChannelId || !token) {
@@ -120,7 +120,7 @@ function ChatPage() {
       const response = await fetch('/api/v1/messages', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
+          "Authorization": `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -133,16 +133,18 @@ function ChatPage() {
         throw new Error('Failed to send message')
       }
       setMessageBody('')
-    } catch {
+    }
+    catch {
       setSendError(t('chat.sendError'))
       toast.error(t('chat.sendError'))
-    } finally {
+    }
+    finally {
       setSendStatus('idle')
     }
   }
 
-  const toggleDropdown = channelId => {
-    setOpenDropdownId(current => (current === channelId ? null : channelId))
+  const toggleDropdown = (channelId) => {
+    setOpenDropdownId((current) => (current === channelId ? null : channelId))
   }
 
   const handleRemoveChannel = async () => {
@@ -164,10 +166,12 @@ function ChatPage() {
       dispatch(removeChannel(removingChannelId))
       toast.success(t('channels.removeSuccess'))
       setRemovingChannelId(null)
-    } catch {
+    }
+    catch {
       setRemoveError(t('channels.removeError'))
       toast.error(t('channels.removeError'))
-    } finally {
+    }
+    finally {
       setRemoveStatus('idle')
     }
   }
@@ -187,24 +191,24 @@ function ChatPage() {
   const addChannelSchema = channelNameSchemaBase.test(
     'unique',
     t('validation.uniqueChannel'),
-    value => {
+    (value) => {
       if (!value) {
         return true
       }
       const normalized = value.trim().toLowerCase()
-      return !channels.some(channel => channel.name.toLowerCase() === normalized)
+      return !channels.some((channel) => channel.name.toLowerCase() === normalized)
     },
   )
 
-  const getRenameSchema = channelId => channelNameSchemaBase.test(
+  const getRenameSchema = (channelId) => channelNameSchemaBase.test(
     'unique-except-current',
     t('validation.uniqueChannel'),
-    value => {
+    (value) => {
       if (!value) {
         return true
       }
       const normalized = value.trim().toLowerCase()
-      return !channels.some(channel => (
+      return !channels.some((channel) => (
         channel.id !== channelId && channel.name.toLowerCase() === normalized
       ))
     },
@@ -251,7 +255,7 @@ function ChatPage() {
                   id="channels-box"
                   className="nav flex-column nav-pills nav-fill px-2 mb-3 overflow-auto h-100 d-block"
                 >
-                  {channels.map(channel => {
+                  {channels.map((channel) => {
                     const buttonClass = channel.id === currentChannelId
                       ? 'w-100 rounded-0 text-start btn btn-secondary'
                       : 'w-100 rounded-0 text-start btn'
@@ -294,7 +298,7 @@ function ChatPage() {
                                   role="button"
                                   tabIndex={0}
                                   href="#"
-                                  onClick={event => {
+                                  onClick={(event) => {
                                     event.preventDefault()
                                     setRemoveError(null)
                                     setRemovingChannelId(channel.id)
@@ -308,7 +312,7 @@ function ChatPage() {
                                   role="button"
                                   tabIndex={0}
                                   href="#"
-                                  onClick={event => {
+                                  onClick={(event) => {
                                     event.preventDefault()
                                     setOpenDropdownId(null)
                                     setRenamingChannelId(channel.id)
@@ -351,13 +355,17 @@ function ChatPage() {
                     </span>
                   </div>
                   <div id="messages-box" className="chat-messages overflow-auto px-5">
-                    {status === 'loading' && <div>
-                      {t('common.loading')}
-                    </div>}
-                    {status === 'failed' && <div className="text-danger">
-                      {error}
-                    </div>}
-                    {status === 'succeeded' && channelMessages.map(message => (
+                    {status === 'loading' && (
+                      <div>
+                        {t('common.loading')}
+                      </div>
+                    )}
+                    {status === 'failed' && (
+                      <div className="text-danger">
+                        {error}
+                      </div>
+                    )}
+                    {status === 'succeeded' && channelMessages.map((message) => (
                       <div key={message.id} className="text-break mb-2">
                         <b>
                           {message.username}
@@ -368,9 +376,11 @@ function ChatPage() {
                     ))}
                   </div>
                   <div className="mt-auto px-5 py-3">
-                    {sendError && <div className="alert alert-danger mb-2">
-                      {sendError}
-                    </div>}
+                    {sendError && (
+                      <div className="alert alert-danger mb-2">
+                        {sendError}
+                      </div>
+                    )}
                     <form noValidate className="py-1 border rounded-2" onSubmit={handleSendMessage}>
                       <div className="input-group has-validation">
                         <input
@@ -379,7 +389,7 @@ function ChatPage() {
                           placeholder={t('chat.messagePlaceholder')}
                           className="border-0 p-0 ps-2 form-control"
                           value={messageBody}
-                          onChange={event => setMessageBody(event.target.value)}
+                          onChange={(event) => setMessageBody(event.target.value)}
                           ref={messageInputRef}
                           disabled={sendStatus === 'sending' || !currentChannelId}
                         />
@@ -427,7 +437,7 @@ function ChatPage() {
                         const response = await fetch('/api/v1/channels', {
                           method: 'POST',
                           headers: {
-                            Authorization: `Bearer ${token}`,
+                            "Authorization": `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
                           body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
@@ -443,7 +453,8 @@ function ChatPage() {
                         toast.success(t('channels.addSuccess'))
                         resetForm()
                         setIsAddingChannel(false)
-                      } finally {
+                      }
+                      finally {
                         setSubmitting(false)
                       }
                     }}
@@ -484,9 +495,11 @@ function ChatPage() {
                               <label className="visually-hidden" htmlFor="name">
                                 {t('channels.nameLabel')}
                               </label>
-                              {status && <div className="invalid-feedback d-block">
-                                {status}
-                              </div>}
+                              {status && (
+                                <div className="invalid-feedback d-block">
+                                  {status}
+                                </div>
+                              )}
                               {touched.name && errors.name && (
                                 <div className="invalid-feedback d-block">
                                   {errors.name}
@@ -538,9 +551,11 @@ function ChatPage() {
                     <p className="lead">
                       {t('channels.confirmRemove')}
                     </p>
-                    {removeError && <div className="alert alert-danger">
-                      {removeError}
-                    </div>}
+                    {removeError && (
+                      <div className="alert alert-danger">
+                        {removeError}
+                      </div>
+                    )}
                     <div className="d-flex justify-content-end">
                       <button
                         type="button"
@@ -574,7 +589,7 @@ function ChatPage() {
                 <div className="modal-content">
                   <Formik
                     initialValues={{
-                      name: channels.find(channel => channel.id === renamingChannelId)?.name ?? '',
+                      name: channels.find((channel) => channel.id === renamingChannelId)?.name ?? '',
                     }}
                     validationSchema={yup.object({ name: getRenameSchema(renamingChannelId) })}
                     onSubmit={async (values, { setSubmitting, setStatus }) => {
@@ -583,7 +598,7 @@ function ChatPage() {
                         const response = await fetch(`/api/v1/channels/${renamingChannelId}`, {
                           method: 'PATCH',
                           headers: {
-                            Authorization: `Bearer ${token}`,
+                            "Authorization": `Bearer ${token}`,
                             'Content-Type': 'application/json',
                           },
                           body: JSON.stringify({ name: leoProfanity.clean(values.name.trim()) }),
@@ -597,7 +612,8 @@ function ChatPage() {
                         dispatch(renameChannel(data))
                         toast.success(t('channels.renameSuccess'))
                         closeRenameModal()
-                      } finally {
+                      }
+                      finally {
                         setSubmitting(false)
                       }
                     }}
@@ -638,9 +654,11 @@ function ChatPage() {
                               <label className="visually-hidden" htmlFor="name">
                                 {t('channels.nameLabel')}
                               </label>
-                              {status && <div className="invalid-feedback d-block">
-                                {status}
-                              </div>}
+                              {status && (
+                                <div className="invalid-feedback d-block">
+                                  {status}
+                                </div>
+                              )}
                               {touched.name && errors.name && (
                                 <div className="invalid-feedback d-block">
                                   {errors.name}

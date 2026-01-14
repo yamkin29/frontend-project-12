@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
 
 export const fetchChatData = createAsyncThunk(
   'chat/fetchChatData',
-  async token => {
+  async (token) => {
     const headers = {
       Authorization: `Bearer ${token}`,
     }
@@ -38,24 +38,24 @@ const chatSlice = createSlice({
       state.currentChannelId = action.payload
     },
     addChannel: (state, action) => {
-      const exists = state.channels.some(channel => channel.id === action.payload.id)
+      const exists = state.channels.some((channel) => channel.id === action.payload.id)
       if (!exists) {
         state.channels.push(action.payload)
       }
     },
     renameChannel: (state, action) => {
       const { id, name } = action.payload
-      const channel = state.channels.find(item => item.id === id)
+      const channel = state.channels.find((item) => item.id === id)
       if (channel) {
         channel.name = name
       }
     },
     removeChannel: (state, action) => {
       const channelId = action.payload
-      state.channels = state.channels.filter(channel => channel.id !== channelId)
-      state.messages = state.messages.filter(message => message.channelId !== channelId)
+      state.channels = state.channels.filter((channel) => channel.id !== channelId)
+      state.messages = state.messages.filter((message) => message.channelId !== channelId)
       if (state.currentChannelId === channelId) {
-        const general = state.channels.find(channel => channel.name === 'general')
+        const general = state.channels.find((channel) => channel.name === 'general')
         state.currentChannelId = general ? general.id : state.channels[0]?.id ?? null
       }
     },
@@ -63,9 +63,9 @@ const chatSlice = createSlice({
       state.messages.push(action.payload)
     },
   },
-  extraReducers: builder => {
+  extraReducers: (builder) => {
     builder
-      .addCase(fetchChatData.pending, state => {
+      .addCase(fetchChatData.pending, (state) => {
         state.status = 'loading'
         state.error = null
       })
@@ -74,7 +74,7 @@ const chatSlice = createSlice({
         state.channels = action.payload.channels
         state.messages = action.payload.messages
         if (!state.currentChannelId && state.channels.length > 0) {
-          const general = state.channels.find(channel => channel.name === 'general')
+          const general = state.channels.find((channel) => channel.name === 'general')
           state.currentChannelId = general ? general.id : state.channels[0].id
         }
       })

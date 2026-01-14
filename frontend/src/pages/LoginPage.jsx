@@ -56,7 +56,8 @@ function LoginPage() {
                             }
                             navigate('/', { replace: true })
                           }
-                        } finally {
+                        }
+                        finally {
                           setSubmitting(false)
                         }
                       }}
@@ -66,9 +67,11 @@ function LoginPage() {
                           <h1 className="text-center mb-4">
                             {t('auth.login')}
                           </h1>
-                          {status && <div className="alert alert-danger">
-                            {status}
-                          </div>}
+                          {status && (
+                            <div className="alert alert-danger">
+                              {status}
+                            </div>
+                          )}
                           <div className="form-floating mb-3">
                             <input
                               name="username"

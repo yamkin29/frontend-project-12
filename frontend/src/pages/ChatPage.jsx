@@ -263,14 +263,71 @@ function ChatPage() {
                       <li className="nav-item w-100" key={channel.id}>
                         {channel.removable
                           ? (
-                            <div role="group" className="d-flex dropdown btn-group position-relative">
+                              <div role="group" className="d-flex dropdown btn-group position-relative">
+                                <button
+                                  type="button"
+                                  className={`${buttonClass} flex-grow-1 text-truncate`}
+                                  onClick={() => {
+                                    dispatch(setCurrentChannelId(channel.id))
+                                    setOpenDropdownId(null)
+                                  }}
+                                >
+                                  <span className="me-1">
+                                    #
+                                  </span>
+                                  {' '}
+                                  {channel.name}
+                                </button>
+                                <button
+                                  type="button"
+                                  id={`channel-controls-${channel.id}`}
+                                  className={`flex-grow-0 dropdown-toggle dropdown-toggle-split btn ${channel.id === currentChannelId ? 'btn-secondary' : 'btn-outline-secondary'}`}
+                                  aria-expanded={openDropdownId === channel.id}
+                                  onClick={() => toggleDropdown(channel.id)}
+                                >
+                                  <span className="visually-hidden">
+                                    {t('channels.manage')}
+                                  </span>
+                                </button>
+                                <div
+                                  className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
+                                  aria-labelledby={`channel-controls-${channel.id}`}
+                                >
+                                  <a
+                                    className="dropdown-item"
+                                    role="button"
+                                    tabIndex={0}
+                                    href="#"
+                                    onClick={(event) => {
+                                      event.preventDefault()
+                                      setRemoveError(null)
+                                      setRemovingChannelId(channel.id)
+                                      setOpenDropdownId(null)
+                                    }}
+                                  >
+                                    {t('channels.remove')}
+                                  </a>
+                                  <a
+                                    className="dropdown-item"
+                                    role="button"
+                                    tabIndex={0}
+                                    href="#"
+                                    onClick={(event) => {
+                                      event.preventDefault()
+                                      setOpenDropdownId(null)
+                                      setRenamingChannelId(channel.id)
+                                    }}
+                                  >
+                                    {t('channels.rename')}
+                                  </a>
+                                </div>
+                              </div>
+                            )
+                          : (
                               <button
                                 type="button"
-                                className={`${buttonClass} flex-grow-1 text-truncate`}
-                                onClick={() => {
-                                  dispatch(setCurrentChannelId(channel.id))
-                                  setOpenDropdownId(null)
-                                }}
+                                className={`${buttonClass} text-truncate`}
+                                onClick={() => dispatch(setCurrentChannelId(channel.id))}
                               >
                                 <span className="me-1">
                                   #
@@ -278,64 +335,7 @@ function ChatPage() {
                                 {' '}
                                 {channel.name}
                               </button>
-                              <button
-                                type="button"
-                                id={`channel-controls-${channel.id}`}
-                                className={`flex-grow-0 dropdown-toggle dropdown-toggle-split btn ${channel.id === currentChannelId ? 'btn-secondary' : 'btn-outline-secondary'}`}
-                                aria-expanded={openDropdownId === channel.id}
-                                onClick={() => toggleDropdown(channel.id)}
-                              >
-                                <span className="visually-hidden">
-                                  {t('channels.manage')}
-                                </span>
-                              </button>
-                              <div
-                                className={`dropdown-menu dropdown-menu-end position-absolute top-100 end-0 ${openDropdownId === channel.id ? 'show' : ''}`}
-                                aria-labelledby={`channel-controls-${channel.id}`}
-                              >
-                                <a
-                                  className="dropdown-item"
-                                  role="button"
-                                  tabIndex={0}
-                                  href="#"
-                                  onClick={(event) => {
-                                    event.preventDefault()
-                                    setRemoveError(null)
-                                    setRemovingChannelId(channel.id)
-                                    setOpenDropdownId(null)
-                                  }}
-                                >
-                                  {t('channels.remove')}
-                                </a>
-                                <a
-                                  className="dropdown-item"
-                                  role="button"
-                                  tabIndex={0}
-                                  href="#"
-                                  onClick={(event) => {
-                                    event.preventDefault()
-                                    setOpenDropdownId(null)
-                                    setRenamingChannelId(channel.id)
-                                  }}
-                                >
-                                  {t('channels.rename')}
-                                </a>
-                              </div>
-                            </div>
-                          )
-                          : (
-                            <button
-                              type="button"
-                              className={`${buttonClass} text-truncate`}
-                              onClick={() => dispatch(setCurrentChannelId(channel.id))}
-                            >
-                              <span className="me-1">
-                                #
-                              </span>
-                              {' '}
-                              {channel.name}
-                            </button>
-                          )}
+                            )}
                       </li>
                     )
                   })}

@@ -10,3 +10,6 @@ lint:
 
 lint-fix:
 	npm --prefix frontend run lint -- --fix
+
+install:
+	npm --prefix frontend ci

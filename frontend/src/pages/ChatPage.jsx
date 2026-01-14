@@ -17,6 +17,8 @@ import {
   setCurrentChannelId,
 } from '../slices/chatSlice'
 
+leoProfanity.add(leoProfanity.getDictionary('ru'))
+
 function ChatPage() {
   const dispatch = useDispatch()
   const {

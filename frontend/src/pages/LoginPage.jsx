@@ -77,7 +77,7 @@ function LoginPage() {
                               value={values.username}
                               ref={loginInputRef}
                             />
-                            <label htmlFor="username">{t('auth.username')}</label>
+                            <label htmlFor="username">{t('auth.nicknamePlaceholder')}</label>
                           </div>
                           <div className="form-floating mb-4">
                             <input

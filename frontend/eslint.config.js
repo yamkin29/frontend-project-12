@@ -14,6 +14,7 @@ export default [
     ],
   },
   js.configs.recommended,
+  stylistic.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {

@@ -2,9 +2,9 @@ import { Formik } from 'formik'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Navigate, useNavigate } from 'react-router-dom'
-import * as yup from 'yup'
 import avatar from '../assets/avatar_1.jpg'
 import Header from '../components/Header'
+import createSignupSchema from '../validation/signupSchema'
 
 function SignupPage() {
   const navigate = useNavigate()
@@ -20,22 +20,7 @@ function SignupPage() {
     return <Navigate to="/" replace />
   }
 
-  const signupSchema = yup.object({
-    username: yup
-      .string()
-      .trim()
-      .min(3, t('validation.nameLength'))
-      .max(20, t('validation.nameLength'))
-      .required(t('validation.required')),
-    password: yup
-      .string()
-      .min(6, t('validation.passwordLength'))
-      .required(t('validation.required')),
-    confirmPassword: yup
-      .string()
-      .oneOf([yup.ref('password')], t('validation.passwordMatch'))
-      .required(t('validation.required')),
-  })
+  const signupSchema = createSignupSchema(t)
 
   return (
     <div className="h-100 bg-light">

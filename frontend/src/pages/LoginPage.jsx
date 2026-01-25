@@ -10,6 +10,33 @@ function LoginPage() {
   const token = localStorage.getItem('token')
   const loginInputRef = useRef(null)
   const { t } = useTranslation()
+  const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    setStatus(null)
+    try {
+      const response = await fetch('/api/v1/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+      if (!response.ok) {
+        setStatus(t('auth.loginError'))
+        return
+      }
+      const data = await response.json()
+      if (data?.token) {
+        localStorage.setItem('token', data.token)
+        if (data.username) {
+          localStorage.setItem('username', data.username)
+        }
+        navigate('/', { replace: true })
+      }
+    }
+    finally {
+      setSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     loginInputRef.current?.focus()
@@ -34,33 +61,7 @@ function LoginPage() {
                     </div>
                     <Formik
                       initialValues={{ username: '', password: '' }}
-                      onSubmit={async (values, { setSubmitting, setStatus }) => {
-                        setStatus(null)
-                        try {
-                          const response = await fetch('/api/v1/login', {
-                            method: 'POST',
-                            headers: {
-                              'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify(values),
-                          })
-                          if (!response.ok) {
-                            setStatus(t('auth.loginError'))
-                            return
-                          }
-                          const data = await response.json()
-                          if (data?.token) {
-                            localStorage.setItem('token', data.token)
-                            if (data.username) {
-                              localStorage.setItem('username', data.username)
-                            }
-                            navigate('/', { replace: true })
-                          }
-                        }
-                        finally {
-                          setSubmitting(false)
-                        }
-                      }}
+                      onSubmit={handleSubmit}
                     >
                       {({ handleChange, handleSubmit, isSubmitting, status, values }) => (
                         <form className="col-12 col-md-6 mt-3 mt-md-0" onSubmit={handleSubmit}>

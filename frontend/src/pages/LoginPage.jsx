@@ -76,7 +76,6 @@ function LoginPage() {
                           <div className="form-floating mb-3">
                             <input
                               name="username"
-                              autoComplete="username"
                               required
                               placeholder={t('auth.nicknamePlaceholder')}
                               id="username"
@@ -92,7 +91,6 @@ function LoginPage() {
                           <div className="form-floating mb-4">
                             <input
                               name="password"
-                              autoComplete="current-password"
                               required
                               placeholder={t('auth.password')}
                               type="password"

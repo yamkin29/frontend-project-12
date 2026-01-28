@@ -94,7 +94,6 @@ function SignupPage() {
                           <div className="form-floating mb-3 position-relative">
                             <input
                               name="username"
-                              autoComplete="username"
                               required
                               placeholder={t('auth.usernamePlaceholder')}
                               id="username"
@@ -115,7 +114,6 @@ function SignupPage() {
                           <div className="form-floating mb-3 position-relative">
                             <input
                               name="password"
-                              autoComplete="new-password"
                               required
                               placeholder={t('auth.passwordPlaceholder')}
                               type="password"
@@ -137,7 +135,6 @@ function SignupPage() {
                           <div className="form-floating mb-4 position-relative">
                             <input
                               name="confirmPassword"
-                              autoComplete="new-password"
                               required
                               placeholder={t('auth.confirmPasswordPlaceholder')}
                               type="password"
